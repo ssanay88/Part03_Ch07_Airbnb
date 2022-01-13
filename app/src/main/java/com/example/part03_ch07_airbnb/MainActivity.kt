@@ -1,15 +1,21 @@
 package com.example.part03_ch07_airbnb
 
+import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.example.part03_ch07_airbnb.databinding.ActivityMainBinding
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.*
 import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.util.FusedLocationSource
 import com.naver.maps.map.util.MarkerIcons
+import com.naver.maps.map.widget.LocationButtonView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -17,12 +23,31 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 // 클래스의 상속과 인터페이스의 구현은 : 으로 표기
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, Overlay.OnClickListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var mapView: MapView
     private lateinit var naverMap: NaverMap
     private lateinit var locationSource: FusedLocationSource
+    private lateinit var viewPager: ViewPager2
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var currentLocationBtn: LocationButtonView
+
+    private val viewPagerAdapter = HouseViewPagerAdapter(itemClicked = {
+        // 뷰페이저 아이템 클릭 시 공유하는 인텐트
+        val intent = Intent()
+            .apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, "[지금 이 가격에 예약하세요!!] ${it.title} ${it.price} 사진보기 : ${it.imgUrl}")
+                type = "text/plain"
+            }
+
+        startActivity(Intent.createChooser(intent, null))
+
+    })
+    private val recyclerViewAdapter = HouseListAdapter()
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +60,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         mapView.getMapAsync(this)    // getMapAsync : 람다로 naverMap을 불러와서 정의하는 방법과 콜백메서드를 통해 실행 , 여기서는 콜백으로 진행
 
+        viewPager = binding.houseViewPager
+        viewPager.adapter = viewPagerAdapter    // 뷰페이저 어댑터 설정
 
+        recyclerView = binding.bottomSheetLayout.recyclerView
+        recyclerView.adapter = recyclerViewAdapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // 뷰페이저에서 집을 선택할 경우 해당 집의 마커로 이동
+        viewPager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+            // 페이지가 선택된 경우 콜백
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+
+                val selectedHouseModel = viewPagerAdapter.currentList[position]    // 선택된 position에 해당하는 HouseModel을 가져온다.
+
+                val cameraUpdate = CameraUpdate.scrollTo(LatLng(selectedHouseModel.lat,selectedHouseModel.lng))    // 선택된 집의 좌표로 카메라 업데이트 선언
+                    .animate(CameraAnimation.Easing)
+                naverMap.moveCamera(cameraUpdate)    // 카메라 이동
+
+
+            }
+        })
 
     }
 
@@ -51,7 +97,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         naverMap.moveCamera(cameraUpdate)    // 처음 시작 카메라 위치를 업데이트
 
         val uiSetting = naverMap.uiSettings
-        uiSetting.isLocationButtonEnabled = true   // 현 위치 버튼 활성화 , 권한을 받아와야 실행 가능
+        uiSetting.isLocationButtonEnabled = false   // 현 위치 버튼 활성화 , 권한을 받아와야 실행 가능
+
+        currentLocationBtn = binding.currentLocationBtn
+        currentLocationBtn.map = naverMap
 
         locationSource = FusedLocationSource(this@MainActivity, LOCATION_PERMISSION_REQUEST_CODE)
         naverMap.locationSource = locationSource
@@ -85,6 +134,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                         response.body()?.let { dto ->
                             Log.d("Retrofit",dto.toString())
                             updateMarker(dto.items)
+                            viewPagerAdapter.submitList(dto.items)    // 뷰페이저 리스트에 아이템 추가
+                            recyclerViewAdapter.submitList(dto.items)    // bottomSheet에 보여주는 리사이클러뷰 리스트에 아이템 추가
+
+                            binding.bottomSheetLayout.bottomSheetTitleTextView.text = "${dto.items.size}개의 숙소"
+
                         }
                     }
 
@@ -105,6 +159,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             val marker = Marker()
             marker.position = LatLng(house.lat,house.lng)
             // TODO 마커 클릭 리스너
+            marker.onClickListener = this
+
             marker.map = naverMap
             marker.tag = house.id
             marker.icon = MarkerIcons.BLACK
@@ -112,6 +168,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         }
     }
+
+    // 마커를 클릭했을 경우
+    override fun onClick(overlay: Overlay): Boolean {
+        // 뷰 페이저에 들어있는 리스트에서 제일 위에 있는 값을 불러오는 명령, 없으면 Null 반환
+        val selectedModel = viewPagerAdapter.currentList.firstOrNull {
+            it.id == overlay.tag    // 선택된 마커의 태그의 일치하는 id를 가지는 모델로 선택
+        }
+
+        // 선택된 모델이 null이 아닐 경우
+        selectedModel?.let {
+            val position = viewPagerAdapter.currentList.indexOf(it)    // 리스트에서 해당 모델의 인덱스를 position으로 지정
+            viewPager.currentItem = position
+        }
+
+        return true
+
+    }
+
+
 
     // 권한 요청에 대한 결과 처리 함수
     override fun onRequestPermissionsResult(
@@ -179,6 +254,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
     }
+
 
 
 }

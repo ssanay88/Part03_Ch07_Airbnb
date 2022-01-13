@@ -3,9 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:behavior_peekHeight="100dp"
     android:background="@drawable/top_radius_while_backgroud"
+    app:behavior_peekHeight="100dp"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+    <View
+        android:layout_width="30dp"
+        android:layout_height="3dp"
+        android:layout_marginTop="12dp"
+        android:background="#cccccc"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/bottomSheetTitleTextView"
@@ -21,18 +30,26 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <View
-        android:id="@+id/bottomSheetTitleView"
+        android:id="@+id/lineView"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/design_default_color_primary"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="1dp"
+        android:background="#cccccc"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/bottomSheetTitleTextView" />
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/lineView" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
 
-<!--
-머터리얼을 이용하여 레이아웃을 bottomSheet로 활용하도록 설정
-behavior_peekHeight: 내려가있을때 얼마나 보여줄지 설정
--->
+    <!--
+    머터리얼을 이용하여 레이아웃을 bottomSheet로 활용하도록 설정
+    behavior_peekHeight: 내려가있을때 얼마나 보여줄지 설정
+    -->

@@ -6,6 +6,8 @@
         <entry key="..\:/Users/82103/AndroidStudioProjects/Part03_Ch07_Airbnb/app/src/main/res/drawable/top_radius_while_backgroud.xml" value="0.26296296296296295" />
         <entry key="..\:/Users/82103/AndroidStudioProjects/Part03_Ch07_Airbnb/app/src/main/res/layout/activity_main.xml" value="0.2046875" />
         <entry key="..\:/Users/82103/AndroidStudioProjects/Part03_Ch07_Airbnb/app/src/main/res/layout/bottom_sheet.xml" value="0.36614583333333334" />
+        <entry key="..\:/Users/82103/AndroidStudioProjects/Part03_Ch07_Airbnb/app/src/main/res/layout/item_house.xml" value="0.36614583333333334" />
+        <entry key="..\:/Users/82103/AndroidStudioProjects/Part03_Ch07_Airbnb/app/src/main/res/layout/item_house_for_viewpager.xml" value="0.36614583333333334" />
       </map>
     </option>
   </component>
