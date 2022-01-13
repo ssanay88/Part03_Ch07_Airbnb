@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Overlay.OnClickLis
     private lateinit var recyclerView: RecyclerView
     private lateinit var currentLocationBtn: LocationButtonView
 
+    // 리사이클러뷰 클릭리스너 생성
     private val viewPagerAdapter = HouseViewPagerAdapter(itemClicked = {
         // 뷰페이저 아이템 클릭 시 공유하는 인텐트
         val intent = Intent()
@@ -45,6 +46,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Overlay.OnClickLis
         startActivity(Intent.createChooser(intent, null))
 
     })
+
     private val recyclerViewAdapter = HouseListAdapter()
 
 
